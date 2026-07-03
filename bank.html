@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Bank App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+    }
+    button.primary {
+      background: #2563eb;
+      color: white;
+    }
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+    }
+    .message {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-left: 4px solid #2563eb;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    .balance {
+      margin: 12px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Bank App</h1>
+
+    <div id="pin-screen">
+      <p>Enter your 4-digit PIN to continue.</p>
+      <input id="pin-input" type="number" placeholder="1234" min="0" max="9999" />
+      <button class="primary" id="pin-submit">Submit PIN</button>
+      <div id="pin-message" class="message hidden"></div>
+    </div>
+
+    <div id="bank-screen" class="hidden">
+      <p class="balance">Current Balance: ₹<span id="balance-value">1000</span></p>
+
+      <div class="button-row">
+        <button class="secondary" id="deposit-btn">Deposit</button>
+        <button class="secondary" id="withdraw-btn">Withdraw</button>
+        <button class="secondary" id="check-btn">Check Balance</button>
+        <button class="secondary" id="exit-btn">Exit</button>
+      </div>
+
+      <div id="action-area" class="hidden" style="margin-top: 18px;">
+        <label for="amount-input">Amount</label>
+        <input id="amount-input" type="number" min="1" placeholder="Enter amount" />
+        <button class="primary" id="action-submit">Submit</button>
+      </div>
+
+      <div id="bank-message" class="message hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    const correctPin = 1234;
+    let balance = 1000;
+    let currentAction = null;
+
+    const pinScreen = document.getElementById('pin-screen');
+    const bankScreen = document.getElementById('bank-screen');
+    const pinInput = document.getElementById('pin-input');
+    const pinSubmit = document.getElementById('pin-submit');
+    const pinMessage = document.getElementById('pin-message');
+    const balanceValue = document.getElementById('balance-value');
+    const depositBtn = document.getElementById('deposit-btn');
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    const checkBtn = document.getElementById('check-btn');
+    const exitBtn = document.getElementById('exit-btn');
+    const actionArea = document.getElementById('action-area');
+    const amountInput = document.getElementById('amount-input');
+    const actionSubmit = document.getElementById('action-submit');
+    const bankMessage = document.getElementById('bank-message');
+
+    function showMessage(element, text) {
+      element.textContent = text;
+      element.classList.remove('hidden');
+    }
+
+    function hideMessage(element) {
+      element.classList.add('hidden');
+      element.textContent = '';
+    }
+
+    function updateBalanceDisplay() {
+      balanceValue.textContent = balance.toFixed(2).replace('.00', '');
+    }
+
+    pinSubmit.addEventListener('click', () => {
+      const pinValue = Number(pinInput.value);
+      if (pinValue !== correctPin) {
+        showMessage(pinMessage, 'Invalid PIN! Please try again.');
+        return;
+      }
+      hideMessage(pinMessage);
+      pinScreen.classList.add('hidden');
+      bankScreen.classList.remove('hidden');
+      showMessage(bankMessage, 'PIN accepted. Welcome to our Bank!');
+    });
+
+    depositBtn.addEventListener('click', () => {
+      currentAction = 'deposit';
+      actionArea.classList.remove('hidden');
+      amountInput.value = '';
+      amountInput.focus();
+      showMessage(bankMessage, 'Enter the amount to deposit.');
+    });
+
+    withdrawBtn.addEventListener('click', () => {
+      currentAction = 'withdraw';
+      actionArea.classList.remove('hidden');
+      amountInput.value = '';
+      amountInput.focus();
+      showMessage(bankMessage, 'Enter the amount to withdraw.');
+    });
+
+    checkBtn.addEventListener('click', () => {
+      currentAction = null;
+      actionArea.classList.add('hidden');
+      showMessage(bankMessage, 'Your current balance is ₹' + balanceValue.textContent + '.');
+    });
+
+    exitBtn.addEventListener('click', () => {
+      currentAction = null;
+      actionArea.classList.add('hidden');
+      showMessage(bankMessage, 'Thank you for using our service. Goodbye!!');
+    });
+
+    actionSubmit.addEventListener('click', () => {
+      const amount = Number(amountInput.value);
+      if (amount <= 0 || Number.isNaN(amount)) {
+        showMessage(bankMessage, 'Please enter a valid amount.');
+        return;
+      }
+
+      if (currentAction === 'deposit') {
+        balance += amount;
+        updateBalanceDisplay();
+        showMessage(bankMessage, 'Congrats! ₹' + amount + ' successfully deposited!');
+      } else if (currentAction === 'withdraw') {
+        if (amount > balance) {
+          showMessage(bankMessage, 'Transaction denied!! Insufficient funds.');
+        } else {
+          balance -= amount;
+          updateBalanceDisplay();
+          showMessage(bankMessage, 'Congrats! ₹' + amount + ' successfully withdrawn!');
+        }
+      }
+      amountInput.value = '';
+    });
+  </script>
+</body>
+</html>
